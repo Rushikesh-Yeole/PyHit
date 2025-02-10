@@ -84,7 +84,8 @@
     }
     /* Emphasize Infinity Icon */
     .infinity {
-      font-size: 1.2em;
+      font-size: 2em; /* Increased for better visibility */
+      font-weight: bold;
       color: var(--accent);
     }
     /* Delete Button – Red Bin Icon */
@@ -100,6 +101,24 @@
     }
     .delete-btn:hover {
       opacity: 0.7;
+    }
+    /* Edit Button – Red Pencil Icon */
+    .edit-btn {
+      position: absolute;
+      top: 50px; /* Adjusted so it appears below the delete button */
+      right: 12px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--accent);
+      transition: opacity var(--transition);
+    }
+    .edit-btn:hover {
+      opacity: 0.7;
+    }
+    /* Force SVG Icons in delete and edit buttons to use red accent */
+    .delete-btn svg, .edit-btn svg {
+      fill: var(--accent) !important;
     }
     /* FAB Styles (Add Server Modal Trigger) */
     .fab {
@@ -306,10 +325,6 @@
     .delete-confirm-btn:hover {
       background: #e02923;
     }
-    .infinity {
-    font-size: 2em; /* Increase size (adjust as needed) */
-    font-weight: bold; /* Optional: Make it bolder */
-    }
   </style>
 </head>
 <body>
@@ -333,10 +348,16 @@
               {% endif %}
             </div>
           </div>
-          <!-- Bin Icon Button to trigger delete confirmation modal -->
+          <!-- Delete Button: Red Bin Icon -->
           <button type="button" class="delete-btn" onclick="openDeleteModal('{{ link._id }}')">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
               <path d="M3 6h18v2H3zM5 9h14l-1.5 12.5c-.1.8-.8 1.5-1.6 1.5H8.1c-.8 0-1.5-.7-1.6-1.5L5 9zm5 2v8h2v-8H10zm4 0v8h2v-8h-2z"/>
+            </svg>
+          </button>
+          <!-- Edit Button: Red Pencil Icon -->
+          <button type="button" class="edit-btn" onclick="openEditModal('{{ link._id }}', '{{ link.name }}', '{{ link.url }}', '{{ link.start }}', '{{ link.end }}', '{{ link.end_date }}')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+              <path d="M3 17.25V21h3.75l11.02-11.02-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.83z"/>
             </svg>
           </button>
         </div>
@@ -349,10 +370,10 @@
   <!-- Floating Action Button for Adding Server -->
   <div class="fab" id="fab">+</div>
 
-  <!-- Modal for Add Server Form -->
+  <!-- Modal for Add Server Form (Used for both Add and Edit) -->
   <div class="modal" id="modal">
     <div class="modal-content">
-      <h2>Add Server</h2>
+      <h2 id="modal-title">Add Server</h2>
       <form method="post" action="/add" autocomplete="off">
         <div class="form-group">
           <label for="name">Name</label>
@@ -406,19 +427,28 @@
   </div>
 
   <script>
-    // FAB & Add Server Modal Toggling
+    // Variables for modals and elements
     const fab = document.getElementById('fab');
     const modal = document.getElementById('modal');
+    const eternalCheckbox = document.getElementById('eternal');
+    const dateGroup = document.getElementById('date-group');
     let modalOpen = false;
+
+    // FAB & Add Server Modal Toggling (for Add)
     fab.addEventListener('click', () => {
-      modalOpen = !modalOpen;
-      if (modalOpen) {
-        modal.classList.add('show');
-        fab.classList.add('rotate');
-      } else {
-        modal.classList.remove('show');
-        fab.classList.remove('rotate');
-      }
+      // Clear previous values for a fresh add operation
+      document.getElementById('modal-title').textContent = "Add Server";
+      document.getElementById('name').value = "";
+      document.getElementById('url').value = "";
+      document.getElementById('start').value = "6";
+      document.getElementById('end').value = "23";
+      document.getElementById('end_date').value = "";
+      eternalCheckbox.checked = false;
+      dateGroup.style.display = 'block';
+      
+      modalOpen = true;
+      modal.classList.add('show');
+      fab.classList.add('rotate');
     });
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
@@ -429,8 +459,6 @@
     });
     
     // Toggle Eternal Checkbox: Show/hide the End Date input accordingly.
-    const eternalCheckbox = document.getElementById('eternal');
-    const dateGroup = document.getElementById('date-group');
     eternalCheckbox.addEventListener('change', () => {
       if (eternalCheckbox.checked) {
         dateGroup.style.display = 'none';
@@ -453,12 +481,32 @@
     function closeDeleteModal() {
       document.getElementById('delete-modal').classList.remove('show');
     }
-    // Close delete modal when clicking outside the modal content
     document.getElementById('delete-modal').addEventListener('click', (e) => {
       if (e.target === document.getElementById('delete-modal')) {
         closeDeleteModal();
       }
     });
+
+    // Edit Functionality: Opens the Add Server modal and pre-fills form fields.
+    function openEditModal(linkId, name, url, start, end, end_date) {
+      document.getElementById('modal-title').textContent = "Edit Server";
+      document.getElementById('name').value = name;
+      document.getElementById('url').value = url;
+      document.getElementById('start').value = start;
+      document.getElementById('end').value = end;
+      if (end_date && end_date !== "None") {
+        document.getElementById('end_date').value = end_date;
+        eternalCheckbox.checked = false;
+        dateGroup.style.display = 'block';
+      } else {
+        document.getElementById('end_date').value = "";
+        eternalCheckbox.checked = true;
+        dateGroup.style.display = 'none';
+      }
+      modalOpen = true;
+      modal.classList.add('show');
+      fab.classList.add('rotate');
+    }
   </script>
 </body>
 </html>

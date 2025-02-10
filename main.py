@@ -16,7 +16,7 @@ db = client["PyHit"]
 collection = db["links"]
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
 
 def load_links():
     docs = list(collection.find({}))

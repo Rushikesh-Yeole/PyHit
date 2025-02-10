@@ -59,9 +59,10 @@ def pinger():
             for l in docs:
                 if l["start"] <= hr < l["end"]:
                     try:
-                        client.head(l["url"], timeout=10)
+                        response = client.head(l["url"], timeout=10)
+                        print(f"Pinged {l['url']} with status: {response.status_code}")
                     except Exception as e:
-                        print("Error pinging", l["url"], ":", e)
+                        print(f"Error pinging {l['url']}: {e}")
         time.sleep(60)
 
 def start_pinger():

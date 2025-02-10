@@ -71,6 +71,10 @@ def start_pinger():
 def startup_event():
     start_pinger()
 
+@app.head("/")
+def head():
+    return ""
+    
 @app.get("/", response_class=HTMLResponse)
 def read_index(request: Request):
     links = load_links()

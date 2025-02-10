@@ -5,6 +5,7 @@ import os, datetime, time, threading, httpx
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from dotenv import load_dotenv
+from zoneinfo import ZoneInfo
 
 load_dotenv()
 MONGODB_URI = os.environ.get("MONGODB_URI")
@@ -41,7 +42,7 @@ def delete_link_by_id(link_id: str):
 
 def pinger():
     while True:
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(ZoneInfo("Asia/Kolkata"))
         hr = now.hour
         docs = list(collection.find({}))
         for l in docs:
@@ -49,6 +50,7 @@ def pinger():
                 try:
                     exp_date = datetime.date.fromisoformat(l["end_date"])
                     expiry_dt = datetime.datetime.combine(exp_date + datetime.timedelta(days=1), datetime.time())
+                    expiry_dt = expiry_dt.replace(tzinfo=ZoneInfo("Asia/Kolkata"))
                     if now >= expiry_dt:
                         collection.delete_one({"_id": l["_id"]})
                         print("Expired and removed:", l)
@@ -57,7 +59,7 @@ def pinger():
         docs = list(collection.find({}))
         with httpx.Client() as client:
             for l in docs:
-                if l["start"] <= hr < l["end"]:
+                if l["start"] <= hr <= l["end"]:
                     try:
                         response = client.head(l["url"], timeout=10)
                         print(f"Pinged {l['url']} with status: {response.status_code}")

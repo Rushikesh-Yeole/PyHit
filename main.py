@@ -62,7 +62,7 @@ def pinger():
             for l in collection.find({"expired": {"$ne": True}}):
                 if l["start"] <= hr <= l["end"]:
                     try:
-                        resp = client.head(l["url"], timeout=10)
+                        resp = client.get(l["url"], timeout=10)
                         print(f"Pinged {l['url']} with status: {resp.status_code}")
                     except Exception as e:
                         print(f"Error pinging {l['url']}: {e}")

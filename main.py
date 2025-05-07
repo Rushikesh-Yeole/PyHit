@@ -66,7 +66,7 @@ def pinger():
                         print(f"Pinged {l['url']} with status: {resp.status_code}")
                     except Exception as e:
                         print(f"Error pinging {l['url']}: {e}")
-        time.sleep(60)
+        time.sleep(7)
 
 def start_pinger():
     threading.Thread(target=pinger, daemon=True).start()

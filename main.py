@@ -5,10 +5,11 @@ import os, datetime, time, threading, httpx
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from dotenv import load_dotenv
-from zoneinfo import ZoneInfo  # For IST
+from zoneinfo import ZoneInfo
 
 load_dotenv()
 MONGODB_URI = os.environ.get("MONGODB_URI")
+interval = int(os.environ.get("INTERVAL"))
 if not MONGODB_URI:
     raise Exception("Missing MONGODB_URI environment variable")
 
@@ -28,7 +29,6 @@ def load_links(expired: bool = False):
 
 def add_link(name, url, start, end, end_date):
     name = name.strip() or url
-    # If an end date is provided, store it as ISO string; otherwise, keep as None.
     stored_end_date = end_date.isoformat() if end_date else None
     expired = False
     if end_date:
@@ -47,7 +47,7 @@ def pinger():
     while True:
         now = datetime.datetime.now(ZoneInfo("Asia/Kolkata"))
         hr = now.hour
-        # Mark expired links without deleting them.
+        #Mark expired links without deleting
         for l in collection.find({"end_date": {"$exists": True, "$ne": None}}):
             try:
                 exp_date = datetime.date.fromisoformat(l["end_date"])
@@ -66,10 +66,11 @@ def pinger():
                         print(f"Pinged {l['url']} with status: {resp.status_code}")
                     except Exception as e:
                         print(f"Error pinging {l['url']}: {e}")
-        time.sleep(7)
+        time.sleep(interval)
 
 def start_pinger():
     threading.Thread(target=pinger, daemon=True).start()
+
 
 @app.on_event("startup")
 def startup_event():
